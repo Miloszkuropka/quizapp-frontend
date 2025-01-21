@@ -69,7 +69,7 @@ function QuizAttempt() {
         }));
     
         const payload = {
-            userId: 1, //TODO wziac z tokena informacje o aktualnym użytkowniku
+            userId: user.user_id,
             quizId: quiz.quizId, // Zakładam, że quiz jest w stanie
             questions: formattedQuestions,
         };
