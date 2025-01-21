@@ -69,7 +69,7 @@ function QuizAttempt() {
         }));
     
         const payload = {
-            userId: user,
+            userId: user.user_id,
             quizId: quiz.quizId, // Zakładam, że quiz jest w stanie
             questions: formattedQuestions,
         };
