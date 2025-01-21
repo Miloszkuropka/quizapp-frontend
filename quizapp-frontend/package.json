@@ -56,6 +56,7 @@
   },
   "proxy": "http://127.0.0.1:8000",
   "devDependencies": {
+    "react-scripts": "^5.0.0",
     "postcss-env-function": "^7.0.0"
   }
 }
