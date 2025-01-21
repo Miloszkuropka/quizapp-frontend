@@ -16,5 +16,5 @@ export const ENDPOINTS = {
     ForgotPassword: BASE_URL + '/api/changepassword/',
     ResetPassword: BASE_URL + '/api/resetpassword/',
     GetQuizEdit: BASE_URL + "/api/quiz_for_edit/",
-    GetQuizStatistics: '/api/quiz-statistics/'
+    GetQuizStatistics: BASE_URL + '/api/quiz-statistics/'
 }
