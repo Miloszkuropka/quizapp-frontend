@@ -1,0 +1,21 @@
+.btn-primary {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+
+  .login-btn {
+    margin-right: 50px;
+  }
+  
+  .forgot-password-btn {
+    float: right;
+    background-color: transparent; 
+    color: #007bff;
+    border: none; 
+    text-decoration: underline; 
+    margin-left: auto; 
+  }
+  

@@ -1,0 +1,85 @@
+/* Global styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Container for the quiz creator */
+  .quiz-creator {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  /* Headings */
+  .quiz-creator h2,
+  .quiz-creator h3 {
+    color: #333;
+  }
+  
+  /* Labels */
+  .quiz-creator label {
+    display: block;
+    margin: 10px 0 5px;
+    font-weight: bold;
+  }
+  
+  /* Input and textarea styles */
+  .quiz-creator input[type="text"],
+  .quiz-creator textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  /* Button styles specific to QuizCreator */
+  .quiz-creator button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+  }
+  
+  .quiz-creator button:hover {
+    background-color: #45a049;
+  }
+  
+  /* Question list styles */
+  .quiz-creator ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .quiz-creator li {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    margin: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  /* Edit and delete buttons for questions */
+  .quiz-creator li button {
+    margin-left: 10px;
+    background-color: #2196F3;
+  }
+  
+  .quiz-creator li button:hover {
+    background-color: #1976D2;
+  }
+  

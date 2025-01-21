@@ -1,0 +1,11 @@
+.text-center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.form-width {
+    width: 33.33%;
+    margin: 0 auto;
+}

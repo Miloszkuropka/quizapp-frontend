@@ -1,0 +1,36 @@
+.answer-item {
+    cursor: pointer;
+    padding: 10px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.answer-item.selected {
+    background-color: #f0f0f0;
+    border: 1px solid #007bff;
+}
+
+.answer-item.correct {
+    background-color: #28a745;
+    color: white;
+}
+
+.answer-item.incorrect {
+    background-color: #dc3545;
+    color: white;
+}
+
+.submit-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.submit-button:hover {
+    background-color: #0056b3;
+}
