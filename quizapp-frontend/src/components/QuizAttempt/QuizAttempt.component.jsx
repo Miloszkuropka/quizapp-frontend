@@ -74,9 +74,9 @@ function QuizAttempt() {
             questions: formattedQuestions,
         };
     
+        console.log(payload);
         // Funkcja do obsługi sukcesu
         const onSuccess = (response, data) => {
-            console.log(data);
             const attemptId = data.attemptId; // Wyciągnięcie attemptId z odpowiedzi
             if (attemptId) {
                 toast.success("Answers submitted successfully!");
@@ -88,7 +88,6 @@ function QuizAttempt() {
     
         // Funkcja do obsługi błędów
         const onFail = (response) => {
-            console.log(data);
             toast.error("Failed to submit answers!");
             toast.error("Error code: " + response.status);
         };
