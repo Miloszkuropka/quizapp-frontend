@@ -20,7 +20,7 @@
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.4.1",
     "react-router-dom": "^7.1.1",
-    "react-scripts": "^5.0.1",   // przeniosłem react-scripts do "dependencies"
+    "react-scripts": "^5.0.1",   
     "request": "^2.88.2",
     "semver": "^7.6.3",
     "serialize-javascript": "^6.0.2",
