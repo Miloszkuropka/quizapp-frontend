@@ -1,7 +1,7 @@
 import { useContext, useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import toast from 'react-hot-toast'
-import { get, post } from '../../api/requests.component';
+import { get } from '../../api/requests.component';
 import { ENDPOINTS } from '../../api/urls.component';
 import { LoginContext } from '../../context/LoginContext';
 import "./UserList.component.css";
@@ -17,8 +17,35 @@ function UserList() {
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [sortActive, setSortActive] = useState(null);
+    const [isAuthorized, setIsAuthorized] = useState(false); // Sprawdzanie uprawnień
     const navigate = useNavigate();
 
+    // Funkcja sprawdzająca uprawnienia użytkownika
+    const checkPermissions = async () => {
+        if (!token) {
+            toast.error("Please log in to continue!");
+            return;
+        }
+
+        const onSuccess = (response, data) => {
+            if (data.isAdmin || data.isSupervisor) {  // Sprawdzamy, czy użytkownik jest administratorem lub nadzorcą
+                setIsAuthorized(true);
+                showUsers();  // Jeśli użytkownik ma odpowiednie uprawnienia, pobieramy użytkowników
+            } else {
+                setIsAuthorized(false);
+                toast.error("You do not have permission to view the user list!");
+            }
+        };
+
+        const onFail = (response) => {
+            toast.error("Failed to check permissions!");
+            console.error("Error checking permissions:", response);
+        };
+
+        await get(ENDPOINTS.CheckAdminStatus, onSuccess, onFail, token);
+    };
+
+    // Pobieranie użytkowników
     const showUsers = async () => {
         console.log("Fetching all users...");
         setLoading(true);
@@ -38,11 +65,11 @@ function UserList() {
     
         await get(ENDPOINTS.GetUsers, onSuccess, onFail, token);
     };
-    
+
     useEffect(() => {
-        showUsers();
+        checkPermissions(); // Sprawdzamy uprawnienia użytkownika
     }, [token]); 
-    
+
     const handleSubmit = (e) => {
         e.preventDefault();
         showUsers();
@@ -86,80 +113,93 @@ function UserList() {
 
     return (
         <div>
-            <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between' }}>
-                <Form.Control
-                    type="text"
-                    placeholder="Search by username"
-                    value={searchTerm}
-                    onChange={handleSearch}
-                    style={{ maxWidth: '300px' }}
-                />
-                <Button variant="secondary" onClick={handleSort}>
-                    Sort by Active ({sortActive ? 'Inactive First' : 'Active First'})
-                </Button>
-            </div>
-
-            {loading && <p>Loading...</p>}
-
-            {filteredUsers.length > 0 && (
-                <Table striped bordered hover>
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Is Activated?</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredUsers.map((user) => (
-                            <tr key={user.id}>
-                                <td>{user.username}</td>
-                                <td>{user.is_active ? 'Yes' : 'No'}</td>
-                                <td>
-                                    <Button
-                                        variant="info"
-                                        onClick={() => handleShowModal(user)}
-                                    >
-                                        Show details
-                                    </Button>
-                                    {' '}
-                                    <Button
-                                        variant="warning"
-                                        onClick={() => handleEditUser(user.id)}
-                                    >
-                                        Edit User
-                                    </Button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </Table>
+            {/* Sprawdzenie uprawnień przed wyświetleniem listy użytkowników */}
+            {!isAuthorized && !loading && (
+                <p>You do not have permission to view the user list.</p>
             )}
 
-            {showModal && (
-                <Modal show={showModal} onHide={handleCloseModal} centered size="lg">
-                    <Modal.Header closeButton>
-                        <Modal.Title>User details</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body className="text-center">
-                        {selectedUser ? (
-                            <>
-                                <p><strong>First Name:</strong> {selectedUser.first_name || 'No data'}</p>
-                                <p><strong>Last Name:</strong> {selectedUser.last_name || 'No data'}</p>
-                                <p><strong>User Name:</strong> {selectedUser.username || 'No data'}</p>
-                                <p><strong>E-mail:</strong> {selectedUser.email || 'No data'}</p>
-                                <p><strong>Created Date:</strong> {selectedUser.date_joined ? new Date(selectedUser.date_joined).toLocaleString( { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'No data'}</p>
-                            </>
-                        ) : (
-                            <p>No user selected.</p>
-                        )}
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="secondary" onClick={handleCloseModal}>
-                            Close
+            {isAuthorized && (
+                <>
+                    {/* Filtry i sortowanie */}
+                    <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between' }}>
+                        <Form.Control
+                            type="text"
+                            placeholder="Search by username"
+                            value={searchTerm}
+                            onChange={handleSearch}
+                            style={{ maxWidth: '300px' }}
+                        />
+                        <Button variant="secondary" onClick={handleSort}>
+                            Sort by Active ({sortActive ? 'Inactive First' : 'Active First'})
                         </Button>
-                    </Modal.Footer>
-                </Modal>
+                    </div>
+
+                    {/* Ładowanie */}
+                    {loading && <p>Loading...</p>}
+
+                    {/* Tabela użytkowników */}
+                    {filteredUsers.length > 0 && (
+                        <Table striped bordered hover>
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Is Activated?</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredUsers.map((user) => (
+                                    <tr key={user.id}>
+                                        <td>{user.username}</td>
+                                        <td>{user.is_active ? 'Yes' : 'No'}</td>
+                                        <td>
+                                            <Button
+                                                variant="info"
+                                                onClick={() => handleShowModal(user)}
+                                            >
+                                                Show details
+                                            </Button>
+                                            {' '}
+                                            <Button
+                                                variant="warning"
+                                                onClick={() => handleEditUser(user.id)}
+                                            >
+                                                Edit User
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+                    )}
+
+                    {/* Modal z szczegółami użytkownika */}
+                    {showModal && (
+                        <Modal show={showModal} onHide={handleCloseModal} centered size="lg">
+                            <Modal.Header closeButton>
+                                <Modal.Title>User details</Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body className="text-center">
+                                {selectedUser ? (
+                                    <>
+                                        <p><strong>First Name:</strong> {selectedUser.first_name || 'No data'}</p>
+                                        <p><strong>Last Name:</strong> {selectedUser.last_name || 'No data'}</p>
+                                        <p><strong>User Name:</strong> {selectedUser.username || 'No data'}</p>
+                                        <p><strong>E-mail:</strong> {selectedUser.email || 'No data'}</p>
+                                        <p><strong>Created Date:</strong> {selectedUser.date_joined ? new Date(selectedUser.date_joined).toLocaleString( { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'No data'}</p>
+                                    </>
+                                ) : (
+                                    <p>No user selected.</p>
+                                )}
+                            </Modal.Body>
+                            <Modal.Footer>
+                                <Button variant="secondary" onClick={handleCloseModal}>
+                                    Close
+                                </Button>
+                            </Modal.Footer>
+                        </Modal>
+                    )}
+                </>
             )}
         </div>
     );

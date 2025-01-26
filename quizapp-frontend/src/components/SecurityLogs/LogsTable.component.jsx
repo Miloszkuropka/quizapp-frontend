@@ -18,12 +18,38 @@ function LogsTable() {
     const [endDate, setEndDate] = useState('');
     const [expandedLogId, setExpandedLogId] = useState(null);
     const [showAll, setShowAll] = useState(false);
+    const [isAuthorized, setIsAuthorized] = useState(false); // Sprawdzanie uprawnień użytkownika
 
+    // Funkcja sprawdzająca, czy użytkownik ma odpowiednie uprawnienia
+    const checkPermissions = async () => {
+        if (!token) {
+            toast.error("Please log in to continue!");
+            return;
+        }
+
+        const onSuccess = (response, data) => {
+            if (data.isAdmin || data.isSupervisor) {  // Sprawdzamy, czy użytkownik jest administratorem lub nadzorcą
+                setIsAuthorized(true);
+                fetchLogs();  // Jeśli użytkownik ma odpowiednie uprawnienia, pobieramy logi
+            } else {
+                setIsAuthorized(false);
+                toast.error("You do not have permission to access the logs!");
+            }
+        };
+
+        const onFail = (response) => {
+            toast.error("Failed to check permissions!");
+            console.error("Error checking permissions:", response);
+        };
+
+        await get(ENDPOINTS.CheckAdminStatus, onSuccess, onFail, token);
+    };
+
+    // Pobieranie logów
     const fetchLogs = async () => {
         setLoading(true);
 
         const onSuccess = (response, data) => {
-
             const parsedData = data.map((log) => ({
                 ...log,
                 device: typeof log.device === 'string'
@@ -49,8 +75,8 @@ function LogsTable() {
     };
 
     useEffect(() => {
-        fetchLogs();
-    }, []);
+        checkPermissions(); // Sprawdzamy uprawnienia użytkownika
+    }, [token]);
 
     const handleFilter = () => {
         let filtered = logs;
@@ -85,92 +111,105 @@ function LogsTable() {
 
     return (
         <div>
-            <div className="filters" style={{ marginBottom: '20px', display: 'flex', gap: '10px', justifyContent: 'center', alignItems: 'center' }}>
-                <Form.Control
-                    type="text"
-                    placeholder="Filter by type"
-                    value={typeFilter}
-                    onChange={(e) => setTypeFilter(e.target.value)}
-                    style={{ maxWidth: '200px' }}
-                />
-                <Form.Control
-                    type="text"
-                    placeholder="Filter by status"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    style={{ maxWidth: '200px' }}
-                />
-                <Form.Control
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    style={{ maxWidth: '200px' }}
-                />
-                <Form.Control
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    style={{ maxWidth: '200px' }}
-                />
-                <Button variant="primary" onClick={handleFilter}>
-                    Apply Filters
-                </Button>
-            </div>
-
-            {loading && <p>Loading logs...</p>}
-
-            {filteredLogs.length > 0 && (
-                <Table striped bordered hover>
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Type</th>
-                            <th>Status</th>
-                            <th>Timestamp</th>
-                            <th>Details</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {logsToDisplay.map((log) => (
-                            <>
-                                <tr key={log.id} onClick={() => toggleDetails(log.id)} style={{ cursor: 'pointer' }}>
-                                    <td>{log.user ?? "Anonymo"}</td>
-                                    <td>{log.type}</td>
-                                    <td>{log.status}</td>
-                                    <td>{new Date(log.timestamp).toLocaleString()}</td>
-                                    <td>{log.details}</td>
-                                </tr>
-                                {expandedLogId === log.id && (
-                                    <tr key={`${log.id}-details`} className="bg-light">
-                                        <td colSpan="5">
-                                            <div>
-                                                <p><strong>IP Address:</strong> {log.ip_address ?? 'N/A'}</p>
-                                                <p><strong>Device Details:</strong></p>
-                                                <ul>
-                                                    <li>
-                                                        <strong>Device Type:</strong>{' '}
-                                                        {log.device?.is_mobile
-                                                            ? 'Mobile'
-                                                            : log.device?.is_tablet
-                                                            ? 'Tablet'
-                                                            : log.device?.is_pc
-                                                            ? 'Desktop'
-                                                            : 'Unknown'}
-                                                    </li>
-                                                    <li><strong>Browser:</strong> {log.device?.browser ?? 'N/A'}</li>
-                                                    <li><strong>OS:</strong> {log.device?.os ?? 'N/A'}</li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-                            </>
-                        ))}
-                    </tbody>
-                </Table>
+            {/* Sprawdzenie uprawnień przed wyświetleniem filtrów */}
+            {!isAuthorized && !loading && (
+                <p>You do not have permission to view the logs.</p>
             )}
 
-            {filteredLogs.length === 0 && !loading && <p>No logs found.</p>}
+            {isAuthorized && (
+                <>
+                    {/* Filtry */}
+                    <div className="filters" style={{ marginBottom: '20px', display: 'flex', gap: '10px', justifyContent: 'center', alignItems: 'center' }}>
+                        <Form.Control
+                            type="text"
+                            placeholder="Filter by type"
+                            value={typeFilter}
+                            onChange={(e) => setTypeFilter(e.target.value)}
+                            style={{ maxWidth: '200px' }}
+                        />
+                        <Form.Control
+                            type="text"
+                            placeholder="Filter by status"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            style={{ maxWidth: '200px' }}
+                        />
+                        <Form.Control
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            style={{ maxWidth: '200px' }}
+                        />
+                        <Form.Control
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            style={{ maxWidth: '200px' }}
+                        />
+                        <Button variant="primary" onClick={handleFilter}>
+                            Apply Filters
+                        </Button>
+                    </div>
+
+                    {/* Ładowanie */}
+                    {loading && <p>Loading logs...</p>}
+
+                    {/* Tabela logów */}
+                    {filteredLogs.length > 0 && (
+                        <Table striped bordered hover>
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Timestamp</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {logsToDisplay.map((log) => (
+                                    <>
+                                        <tr key={log.id} onClick={() => toggleDetails(log.id)} style={{ cursor: 'pointer' }}>
+                                            <td>{log.user ?? "Anonymous"}</td>
+                                            <td>{log.type}</td>
+                                            <td>{log.status}</td>
+                                            <td>{new Date(log.timestamp).toLocaleString()}</td>
+                                            <td>{log.details}</td>
+                                        </tr>
+                                        {expandedLogId === log.id && (
+                                            <tr key={`${log.id}-details`} className="bg-light">
+                                                <td colSpan="5">
+                                                    <div>
+                                                        <p><strong>IP Address:</strong> {log.ip_address ?? 'N/A'}</p>
+                                                        <p><strong>Device Details:</strong></p>
+                                                        <ul>
+                                                            <li>
+                                                                <strong>Device Type:</strong>{' '}
+                                                                {log.device?.is_mobile
+                                                                    ? 'Mobile'
+                                                                    : log.device?.is_tablet
+                                                                    ? 'Tablet'
+                                                                    : log.device?.is_pc
+                                                                    ? 'Desktop'
+                                                                    : 'Unknown'}
+                                                            </li>
+                                                            <li><strong>Browser:</strong> {log.device?.browser ?? 'N/A'}</li>
+                                                            <li><strong>OS:</strong> {log.device?.os ?? 'N/A'}</li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </>
+                                ))}
+                            </tbody>
+                        </Table>
+                    )}
+
+                    {/* Jeśli brak logów */}
+                    {filteredLogs.length === 0 && !loading && <p>No logs found.</p>}
+                </>
+            )}
         </div>
     );
 }

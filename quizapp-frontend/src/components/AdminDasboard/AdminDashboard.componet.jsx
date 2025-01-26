@@ -32,15 +32,16 @@ function AdminDashboard() {
     const [userCount, setUserCount] = useState(0);
     const [latestLogs, setLatestLogs] = useState([]);
     const [loginsData, setLoginsData] = useState({ labels: [], data: [] });
+    const [isAdmin, setIsAdmin] = useState(false);  // Dodane do przechowywania statusu admina
 
     const fetchUserCount = async () => {
         const onSuccess = (response, data) => {
-        setUserCount(data.length);
+            setUserCount(data.length);
         };
 
         const onFail = (response) => {
-        toast.error('Failed to fetch users!');
-        console.error('Error fetching users:', response);
+            toast.error('Failed to fetch users!');
+            console.error('Error fetching users:', response);
         };
 
         await get(ENDPOINTS.GetUsers, onSuccess, onFail, token);
@@ -48,43 +49,70 @@ function AdminDashboard() {
 
     const fetchLogs = async () => {
         const onSuccess = (response, data) => {
-        const logs = data.slice(-5);
-        const sortedLogs = logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        setLatestLogs(sortedLogs);
+            const logs = data.slice(-5);
+            const sortedLogs = logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            setLatestLogs(sortedLogs);
 
-        const today = new Date();
-        const loginsPerDay = Array(7).fill(0);
+            const today = new Date();
+            const loginsPerDay = Array(7).fill(0);
 
-        data.forEach(log => {
-            const logDate = new Date(log.timestamp);
-            const diffInDays = Math.floor((today - logDate) / (1000 * 60 * 60 * 24));
-            if (diffInDays >= 0 && diffInDays < 7) {
-            loginsPerDay[6 - diffInDays] += 1;
-            }
-        });
+            data.forEach(log => {
+                const logDate = new Date(log.timestamp);
+                const diffInDays = Math.floor((today - logDate) / (1000 * 60 * 60 * 24));
+                if (diffInDays >= 0 && diffInDays < 7) {
+                    loginsPerDay[6 - diffInDays] += 1;
+                }
+            });
 
-        const labels = Array.from({ length: 7 }, (_, i) => {
-            const date = new Date();
-            date.setDate(today.getDate() - (6 - i));
-            return date.toISOString().slice(0, 10);
-        });
+            const labels = Array.from({ length: 7 }, (_, i) => {
+                const date = new Date();
+                date.setDate(today.getDate() - (6 - i));
+                return date.toISOString().slice(0, 10);
+            });
 
-        setLoginsData({ labels, data: loginsPerDay });
+            setLoginsData({ labels, data: loginsPerDay });
         };
 
         const onFail = (response) => {
-        toast.error('Failed to fetch logs!');
-        console.error('Error fetching logs:', response);
+            toast.error('Failed to fetch logs!');
+            console.error('Error fetching logs:', response);
         };
 
         await get(ENDPOINTS.GetLogs, onSuccess, onFail, token);
     };
 
+    // Funkcja sprawdzająca, czy użytkownik jest administratorem
+    // Zaktualizowana funkcja sprawdzająca admina:
+const checkIfAdmin = async () => {
+    const onSuccess = (response, data) => {
+        if (data.isAdmin) {
+            setIsAdmin(true);  // Jeśli użytkownik jest adminem, ustawiamy isAdmin na true
+            fetchUserCount();  // Pobieramy dane użytkowników
+            fetchLogs();  // Pobieramy logi
+        } else {
+            setIsAdmin(false);  // Jeśli użytkownik nie jest adminem
+            toast.error('You do not have permission to access this page!');
+        }
+        setLoading(false);  // Ustawiamy loading na false po zakończeniu sprawdzania
+    };
+
+    const onFail = (response) => {
+        toast.error('Failed to check admin status!');
+        console.error('Error checking admin status:', response);
+        setLoading(false);  // Ustawiamy loading na false w przypadku błędu
+    };
+
+    await get(ENDPOINTS.CheckAdminStatus, onSuccess, onFail, token);
+};
+
     useEffect(() => {
-        setLoading(true);
-        Promise.all([fetchUserCount(), fetchLogs()])
-        .then(() => setLoading(false))
-        .catch(() => setLoading(false));
+        setLoading(true);  // Rozpoczynamy ładowanie
+        if (token) {
+            checkIfAdmin();  // Sprawdzamy, czy użytkownik jest adminem
+        } else {
+            setLoading(false);  // Jeśli brak tokena, ustawiamy loading na false
+            toast.error('Please log in to continue!');
+        }
     }, [token]);
 
     const chartData = {
@@ -104,7 +132,7 @@ function AdminDashboard() {
     return (
         <div style={{ padding: '20px' }}>
         {loading && <p>Loading...</p>}
-        {!loading && (
+        {!loading && isAdmin && (
             <>
             {/* Górna połowa */}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -145,7 +173,7 @@ function AdminDashboard() {
             {/* Dolna połowa */}
             <div style={{ width: '800px', maxHeight: '500px', margin: '0 auto' }}>
                 <h2 style={{ textAlign: 'center' }}>Logins in the Last 7 Days</h2>
-                <   Line data={chartData} />
+                <Line data={chartData} />
             </div>
             </>
         )}

@@ -1,4 +1,4 @@
-export const BASE_URL = "https://quizapp-backend-sz4l.onrender.com"
+export const BASE_URL = "http://127.0.0.1:8000"
 
 export const ENDPOINTS = {
     Register: BASE_URL + "/api/api/user/register/",
@@ -16,5 +16,6 @@ export const ENDPOINTS = {
     ForgotPassword: BASE_URL + '/api/changepassword/',
     ResetPassword: BASE_URL + '/api/resetpassword/',
     GetQuizEdit: BASE_URL + "/api/quiz_for_edit/",
-    GetQuizStatistics: BASE_URL + '/api/quiz-statistics/'
+    GetQuizStatistics: BASE_URL + '/api/quiz-statistics/',
+    CheckAdminStatus: BASE_URL + "/api/is-admin/",
 }
