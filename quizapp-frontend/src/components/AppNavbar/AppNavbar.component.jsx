@@ -17,7 +17,7 @@ function AppNavbar() {
     { url: '/admin/dashboard', name: 'Admin Dashboard', auth: true, adminOnly: true },
     { url: '/admin/logstable', name: 'Logs Table', auth: true, adminOnly: true },
     { url: '/admin/userlist', name: 'User List', auth: true, adminOnly: true },
-    { url: '/admin/userform', name: 'Create User', auth: true, adminOnly: true },
+    //{ url: '/admin/userform', name: 'Create User', auth: true, adminOnly: true },
     { url: "/statistics", name: "Statistics", auth: true }
   ];
 
