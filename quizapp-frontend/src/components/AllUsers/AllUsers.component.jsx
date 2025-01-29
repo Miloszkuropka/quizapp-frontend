@@ -72,7 +72,7 @@ const UserList1 = () => {
                 <button type="submit">Fetch Users</button>
             </form>
             {loading && <p>Loading...</p>} {/* Pokazuje loading podczas pobierania */}
-            {!isAdmin && !loading && <p>You are not authorized to view the users.</p>} {/* Komunikat, jeśli użytkownik nie jest adminem */}
+            {!isAdmin && <p>You are not authorized to view the users.</p>} {/* Komunikat, jeśli użytkownik nie jest adminem */}
             <ul>
                 {users.map((user, index) => (
                     <li key={index}>{user.username}</li> // Wyświetlaj nazwę użytkownika lub inne właściwości
